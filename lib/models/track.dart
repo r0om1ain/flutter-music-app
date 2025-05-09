@@ -14,14 +14,16 @@ class Track {
   });
 
   factory Track.fromJson(Map<String, dynamic> json) {
+    final artistField = json['artist'];
     return Track(
       id: json['id'].toString(),
       title: json['title'],
-      artist: json['artist']['name'],
+      artist: artistField is Map ? artistField['name'] : artistField.toString(),
       previewUrl: json['preview'],
-      coverUrl: json['album']['cover_medium'],
+      coverUrl: json['album'] is Map ? json['album']['cover_medium'] : '',
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
