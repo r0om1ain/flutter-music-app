@@ -1,8 +1,9 @@
+// 📁 lib/screens/favorites_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/favorites_provider.dart';
 import '../widgets/track_card.dart';
-import 'player_screen.dart';
+import '../screens/player_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -27,7 +28,8 @@ class FavoritesScreen extends StatelessWidget {
             ),
           ),
           isFavorite: true,
-          onFavoriteToggle: () => favProvider.toggleFavorite(favorites[i]),
+          onFavoriteToggle: () =>
+              favProvider.toggleFavorite(favorites[i]),
         ),
       ),
     );
