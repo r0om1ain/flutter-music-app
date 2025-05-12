@@ -34,32 +34,67 @@ class _HomeScreenState extends State<HomeScreen> {
     final favProvider = Provider.of<FavoritesProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Musiques par genre')),
+      backgroundColor: const Color(0xFFF5F7FA),
+      appBar: AppBar(
+        title: const Text(
+          'Musiques par genre',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: Column(
         children: [
-          DropdownButton<String>(
-            value: _selectedGenre,
-            items: _genres
-                .map((g) => DropdownMenuItem(value: g, child: Text(g.toUpperCase())))
-                .toList(),
-            onChanged: (val) => setState(() {
-              _selectedGenre = val!;
-              _loadTracks();
-            }),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: DropdownButtonFormField<String>(
+              value: _selectedGenre,
+              decoration: InputDecoration(
+                labelText: 'Sélectionne un genre',
+                labelStyle: const TextStyle(color: Colors.black54),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+              ),
+              icon: const Icon(Icons.arrow_drop_down),
+              items: _genres
+                  .map((g) => DropdownMenuItem(
+                value: g,
+                child: Text(g.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w500)),
+              ))
+                  .toList(),
+              onChanged: (val) => setState(() {
+                _selectedGenre = val!;
+                _loadTracks();
+              }),
+            ),
           ),
+          const SizedBox(height: 8),
           Expanded(
-            child: ListView.builder(
+            child: _tracks.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: _tracks.length,
               itemBuilder: (ctx, i) {
                 final t = _tracks[i];
-                return TrackCard(
-                  track: t,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => PlayerScreen(track: t)),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: TrackCard(
+                    track: t,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => PlayerScreen(track: t)),
+                    ),
+                    isFavorite: favProvider.isFavorite(t.id),
+                    onFavoriteToggle: () => favProvider.toggleFavorite(t),
                   ),
-                  isFavorite: favProvider.isFavorite(t.id),
-                  onFavoriteToggle: () => favProvider.toggleFavorite(t),
                 );
               },
             ),
