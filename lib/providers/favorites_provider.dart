@@ -1,37 +1,47 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/track.dart';
-import 'dart:convert';
 
 class FavoritesProvider with ChangeNotifier {
   List<Track> _favorites = [];
+  final _firestore = FirebaseFirestore.instance;
 
   List<Track> get favorites => _favorites;
 
-  void toggleFavorite(Track track) {
-    if (_favorites.any((t) => t.id == track.id)) {
+  Future<void> toggleFavorite(Track track) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final docRef = _firestore
+        .collection('favorites')
+        .doc(user.uid)
+        .collection('tracks')
+        .doc(track.id);
+
+    if (isFavorite(track.id)) {
+      await docRef.delete();
       _favorites.removeWhere((t) => t.id == track.id);
     } else {
+      await docRef.set(track.toJson());
       _favorites.add(track);
     }
-    _saveToStorage();
     notifyListeners();
   }
 
   bool isFavorite(String id) => _favorites.any((t) => t.id == id);
 
   Future<void> loadFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonStr = prefs.getString('favorites');
-    if (jsonStr != null) {
-      final List decoded = json.decode(jsonStr);
-      _favorites = decoded.map((e) => Track.fromJson(e)).toList();
-      notifyListeners();
-    }
-  }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  Future<void> _saveToStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('favorites', json.encode(_favorites.map((e) => e.toJson()).toList()));
+    final snap = await _firestore
+        .collection('favorites')
+        .doc(user.uid)
+        .collection('tracks')
+        .get();
+
+    _favorites = snap.docs.map((doc) => Track.fromJson(doc.data())).toList();
+    notifyListeners();
   }
 }
